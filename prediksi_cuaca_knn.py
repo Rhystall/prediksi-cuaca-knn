@@ -1,5 +1,4 @@
 import csv
-import random
 
 # Buat list untuk menyimpan data
 data = []

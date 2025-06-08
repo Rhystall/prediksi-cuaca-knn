@@ -1,26 +1,36 @@
-import csv
-
 # Buat list untuk menyimpan data
 data = []
 
-# Ubah Map label cuaca di CSV ke bahasa Indonesia
+# Ubah Map label cuaca ke Bahasa Indonesia
 label_map = {
     'Sunny': 'Cerah',
     'Rainy': 'Hujan',
     'Cloudy': 'Berawan',
 }
 
-# Baca data dari file CSV
-with open('weather_classification_data.csv', mode='r') as file:
-    reader = csv.DictReader(file)
-    for row in reader:
-        try:
-            suhu = float(row['Temperature'])
-            kelembapan = float(row['Humidity'])
-            label = label_map.get(row['Weather Type'], row['Weather Type'])
-            data.append((suhu, kelembapan, label))
-        except:
-            continue # Buat skip baris yang error
+# Baca data dari file CSV secara manual tanpa import csv
+with open('weather_classification_data.csv', 'r') as f:
+    lines = f.readlines()
+
+# Ambil header (baris pertama)
+header = lines[0].strip().split(',')
+
+# Pastikan header berisi kolom yang sesuai
+idx_temp = header.index("Temperature")
+idx_hum = header.index("Humidity")
+idx_label = header.index("Weather Type")
+
+# Baca setiap baris selanjutnya
+for line in lines[1:]:
+    try:
+        row = line.strip().split(',')
+        suhu = float(row[idx_temp])
+        kelembapan = float(row[idx_hum])
+        label = label_map.get(row[idx_label], row[idx_label])
+        data.append((suhu, kelembapan, label))
+    except:
+        continue  # Skip baris error
+
 
 # Fungsi hitung jarak Euclidean (Untuk Menghitung jarak 2Dimensi antara data bara ke dataset)
 def euclidean_distance(x1, x2):

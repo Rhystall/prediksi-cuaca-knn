@@ -26,7 +26,9 @@ for line in lines[1:]:
         row = line.strip().split(',')
         suhu = float(row[idx_temp])
         kelembapan = float(row[idx_hum])
-        label = label_map.get(row[idx_label], row[idx_label])
+        if row[idx_label] not in label_map:
+                continue  # Skip jika label tidak dikenali (misalnya: Snowy)
+        label = label_map[row[idx_label]]
         data.append((suhu, kelembapan, label))
     except:
         continue  # Skip baris error

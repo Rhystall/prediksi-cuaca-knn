@@ -43,8 +43,65 @@ def knn_predict(suhu, kelembapan, k=3):
     prediction = max(set(k_labels), key=k_labels.count)
     return prediction
 
+
+#Evaluasi Model
+#Split data menjadi data latih dan data uji manual
+def split_data(dataset, test_ratio=0.2):
+    total = len(dataset)
+    test_size = int(total * test_ratio)
+    
+    # Shuffle data manual
+    shuffled = dataset.copy()
+    for i in range(len(shuffled)):
+        j = (i * 17 + 13) % total
+        shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+
+    return shuffled[:-test_size], shuffled[-test_size:]
+
+#Fungsi Evaluasi Model
+def evaluate_model(test_data, k=3):
+    actual = []
+    predicted = []
+
+    for suhu, kelembapan, label in test_data:
+        pred = knn_predict(suhu, kelembapan, k)
+        actual.append(label)
+        predicted.append(pred)
+
+    unique_labels = list(set(actual))
+    correct = sum(1 for a, p in zip(actual, predicted) if a == p)
+    accuracy = correct / len(actual)
+
+    # Buat confusion matrix per label (sederhana)
+    from collections import Counter
+    label_set = set(actual + predicted)
+    cm = {label: {"TP":0, "FP":0, "FN":0} for label in label_set}
+
+    for a, p in zip(actual, predicted):
+        for label in label_set:
+            if a == label and p == label:
+                cm[label]["TP"] += 1
+            elif a == label and p != label:
+                cm[label]["FN"] += 1
+            elif a != label and p == label:
+                cm[label]["FP"] += 1
+
+    print(f"\nEvaluasi Model (k = {k})")
+    print(f"Akurasi: {accuracy:.2f}")
+    for label in cm:
+        tp = cm[label]["TP"]
+        fp = cm[label]["FP"]
+        fn = cm[label]["FN"]
+        precision = tp / (tp + fp) if (tp + fp) else 0
+        recall = tp / (tp + fn) if (tp + fn) else 0
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) else 0
+        print(f"\nLabel: {label}")
+        print(f"  Precision: {precision:.2f}")
+        print(f"  Recall   : {recall:.2f}")
+        print(f"  F1-Score : {f1:.2f}")
+
+
 # Contoh prediksi
-#Data Baru
 suhu_input = 30
 kelembapan_input = 80
 
@@ -59,3 +116,13 @@ hasil = knn_predict(suhu_input, kelembapan_input)
 
 # Tampilkan hasil prediksi
 print(f"Prediksi cuaca untuk suhu {suhu_input}°C dan kelembapan {kelembapan_input}%: {hasil}")
+
+# Evaluasi model
+# Split dataset jadi data latih dan uji
+train_data, test_data = split_data(data, test_ratio=0.3)
+
+# Replace global data dengan data latih (agar knn_predict pakai data latih)
+data = train_data
+
+# Evaluasi model
+evaluate_model(test_data, k=3)
